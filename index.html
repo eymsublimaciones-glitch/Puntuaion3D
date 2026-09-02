@@ -4,8 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#ffffff">
-<link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icon-192.png">
 <title>3D - Planilla de Puntajes</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -31,7 +29,7 @@ body{padding-bottom:220px}
 .summary{display:grid;grid-template-columns:1fr 1fr 1fr 1.65fr;gap:7px;padding:9px 10px;border-bottom:1px solid #ddd;position:sticky;top:115px;background:#fff;z-index:18}
 .card{border:1px solid #d0d0d0;border-radius:12px;text-align:center;padding:7px 3px;background:#fff}
 .card .label{font-size:11px}.card .value{font-size:25px;font-weight:800;margin-top:4px}
-.counters{display:grid;grid-template-columns:repeat(4,1fr);margin-top:3px}
+.counters{display:grid;grid-template-columns:repeat(5,1fr);margin-top:3px}
 .counters div{font-size:11px}.counters b{display:block;font-size:18px;margin-top:2px}
 .table{padding:5px 10px 15px}
 .head,.row{display:grid;grid-template-columns:34px 1fr 1fr 66px 66px;gap:6px;align-items:center}
@@ -48,6 +46,9 @@ body{padding-bottom:220px}
 .pad{max-width:740px;margin:auto;display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
 .score{height:66px;border:1px solid #bbb;border-radius:13px;background:#fff;font-size:29px;font-weight:800;box-shadow:0 1px 3px #ccc}
 .score:nth-child(1){border-bottom:5px solid #f1d431}.score:nth-child(2){border-bottom:5px solid #df3d35}.score:nth-child(3){border-bottom:5px solid #49a66a}.score:nth-child(4){border-bottom:5px solid #49a66a}
+.score-m{width:100%;height:48px;margin-top:7px;font-size:24px;border-bottom:5px solid #222}
+.score-zero{display:block;font-size:9px;margin-top:-2px;font-weight:500}
+.fullsheet{width:100%;height:45px;margin-top:8px;border:1px solid #bbb;border-radius:11px;background:#fff;font-size:13px;font-weight:800}
 .tools{max-width:740px;margin:7px auto 0;display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}
 .tool{height:44px;border:1px solid #bbb;border-radius:10px;background:#fff;font-size:11px;font-weight:700}
 .footer{max-width:740px;margin:7px auto 0;display:grid;grid-template-columns:1fr 1fr 1fr;font-size:10px}
@@ -56,14 +57,26 @@ body{padding-bottom:220px}
  .top h1{font-size:17px}.summary{top:122px}.archers{top:67px}
  .head,.row{grid-template-columns:27px 1fr 1fr 55px 55px;gap:5px}
  .cell{height:43px;font-size:18px}.result,.running{font-size:15px}
- .card .value{font-size:23px}.score{height:64px;font-size:27px}
+ .card .value{font-size:23px}.score{height:64px;font-size:27px}.score-m{height:46px;font-size:24px}
 }
+
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:50;padding:10px;overflow:auto}
+.modal.show{display:block}
+.sheet{max-width:900px;margin:0 auto;background:#fff;border-radius:14px;padding:14px}
+.sheet-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
+.sheet-head h2{margin:0;font-size:19px}
+.sheet-close{border:1px solid #bbb;background:#fff;border-radius:9px;padding:8px 11px;font-weight:700}
+.sheet-card{border:1px solid #ccc;border-radius:12px;margin:10px 0;padding:10px}
+.sheet-card h3{margin:0 0 4px;font-size:16px}
+.sheet-card p{margin:4px 0 9px;font-size:12px}
+.sheet-table{width:100%;border-collapse:collapse;font-size:12px}
+.sheet-table th,.sheet-table td{border:1px solid #ccc;padding:6px;text-align:center}
+.sheet-table th{background:#f4f4f4}
 </style>
 </head>
 <body>
 <div class="app">
-  <button id="installBtn" style="display:none;position:fixed;right:10px;top:72px;z-index:50;border:1px solid #aaa;border-radius:10px;background:#fff;padding:8px;font-weight:700">＋ Instalar</button>
-<div class="top">
+  <div class="top">
     <button onclick="newRound()">‹</button>
     <h1>3D - Planilla de Puntajes</h1>
     <button onclick="undo()">↶<span class="small">Deshacer</span></button>
@@ -91,7 +104,7 @@ body{padding-bottom:220px}
     <div class="card"><div class="label">ANIMALES</div><div class="value"><span id="done">0</span> / 24</div></div>
     <div class="card"><div class="label">PROMEDIO</div><div class="value" id="avg">0,0</div></div>
     <div class="card"><div class="label">CONTADORES</div>
-      <div class="counters"><div>11<b id="c11">0</b></div><div>10<b id="c10">0</b></div><div>8<b id="c8">0</b></div><div>5<b id="c5">0</b></div></div>
+      <div class="counters"><div>11<b id="c11">0</b></div><div>10<b id="c10">0</b></div><div>8<b id="c8">0</b></div><div>5<b id="c5">0</b></div><div>M<b id="cM">0</b></div></div>
     </div>
   </div>
 
@@ -108,15 +121,24 @@ body{padding-bottom:220px}
     <button class="score" onclick="addScore(8)">8</button>
     <button class="score" onclick="addScore(5)">5</button>
   </div>
+  <button class="score score-m" onclick="addScore(0)">M<span class="score-zero">0</span></button>
   <div class="tools">
     <button class="tool" onclick="undo()">↶<br>BORRAR ÚLTIMA FLECHA</button>
     <button class="tool" onclick="deleteAnimal()">☒<br>BORRAR ÚLTIMO ANIMAL</button>
     <button class="tool" onclick="finish()">🏁<br>FINALIZAR TIRADA</button>
   </div>
+  <button class="fullsheet" onclick="showFullSheet()">📊 PLANILLA COMPLETA</button>
   <div class="footer">
     <div>Inicio: <span id="start"></span></div>
     <div>3D - 24 Animales</div>
-    <div onclick="saveAll()">▣ GUARDAR</div>
+    <div onclick="saveAll()">▣ GUARDAR<br><span style="font-weight:500">Automático</span></div>
+  </div>
+</div>
+
+<div class="modal" id="fullSheetModal">
+  <div class="sheet">
+    <div class="sheet-head"><h2>📊 Planilla completa · 3D</h2><button class="sheet-close" onclick="closeFullSheet()">Cerrar ✕</button></div>
+    <div id="fullSheetContent"></div>
   </div>
 </div>
 
@@ -130,6 +152,30 @@ let data={names:['Arquero 1','Arquero 2','Arquero 3','Arquero 4'],
 
 let profileOpen=false;
 
+function showFullSheet(){
+  let html='';
+  for(let i=0;i<4;i++){
+    const p=data.profiles[i]||{};
+    const name=((p.first||'')+' '+(p.last||'')).trim()||data.names[i]||('Arquero '+(i+1));
+    const info=(p.bow||'Arco')+' · '+(p.cat||'Cat.');
+    const sc=data.scores[i]||[];
+    let total=0,c11=0,c10=0,c8=0,c5=0,cM=0;
+    sc.forEach(pair=>pair.forEach(v=>{if(v!==null){total+=v;if(v===11)c11++;if(v===10)c10++;if(v===8)c8++;if(v===5)c5++;if(v===0)cM++;}}));
+    html+=`<div class="sheet-card"><h3>Arquero ${i+1}: ${escapeHtml(name)}</h3><p>${escapeHtml(info)} · <b>Total: ${total}</b> · 11:${c11} · 10:${c10} · 8:${c8} · 5:${c5} · M:${cM}</p>
+    <div style="overflow:auto"><table class="sheet-table"><tr><th>Animal</th><th>Flecha 1</th><th>Flecha 2</th><th>Subtotal</th><th>Acumulado</th></tr>`;
+    let run=0;
+    for(let j=0;j<24;j++){
+      const pair=sc[j]||[null,null], a=pair[0], b=pair[1], complete=a!==null&&b!==null;
+      if(a!==null)run+=a;if(b!==null)run+=b;
+      html+=`<tr><td>${j+1}</td><td>${a===null?'':(a===0?'M':a)}</td><td>${b===null?'':(b===0?'M':b)}</td><td>${complete?a+b:'-'}</td><td>${complete?run:'-'}</td></tr>`;
+    }
+    html+='</table></div></div>';
+  }
+  document.getElementById('fullSheetContent').innerHTML=html;
+  document.getElementById('fullSheetModal').classList.add('show');
+}
+function closeFullSheet(){document.getElementById('fullSheetModal').classList.remove('show')}
+
 function load(){
   try{
     const saved=JSON.parse(localStorage.getItem(KEY));
@@ -142,6 +188,7 @@ function load(){
 function saveAll(){localStorage.setItem(KEY,JSON.stringify(data))}
 function current(){return data.scores[data.active]}
 
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function renderArchers(){
   const box=document.getElementById('archers');
   box.innerHTML='';
@@ -243,12 +290,12 @@ function render(){
   const p=data.profiles[data.active]||{};
   const archerName=((p.first||'')+' '+(p.last||'')).trim()||data.names[data.active]||('Arquero '+(data.active+1));
   document.getElementById('groupProgress').textContent='Animal '+Math.min(idx+1,24)+' de 24 · Turno de '+archerName;
-  let total=0,c11=0,c10=0,c8=0,c5=0,done=0;
+  let total=0,c11=0,c10=0,c8=0,c5=0,cM=0,done=0;
   for(const pair of s){
     for(const v of pair){
       if(v!==null){
         total+=v;
-        if(v===11)c11++; if(v===10)c10++; if(v===8)c8++; if(v===5)c5++;
+        if(v===11)c11++; if(v===10)c10++; if(v===8)c8++; if(v===5)c5++; if(v===0)cM++;
       }
     }
     if(pair[0]!==null && pair[1]!==null)done++;
@@ -260,6 +307,7 @@ function render(){
   document.getElementById('c10').textContent=c10;
   document.getElementById('c8').textContent=c8;
   document.getElementById('c5').textContent=c5;
+  document.getElementById('cM').textContent=cM;
 
   const rows=document.getElementById('rows');
   rows.innerHTML='';
@@ -293,25 +341,10 @@ function finish(){
   if(!s.length)return alert('Todavía no hay puntos anotados.');
   if(s.some(p=>p[0]===null||p[1]===null))return alert('Falta completar las dos flechas de un animal.');
   const total=s.reduce((t,p)=>t+p[0]+p[1],0);
-  const c11=s.flat().filter(v=>v===11).length,c10=s.flat().filter(v=>v===10).length;
-  alert('🏆 TIRADA FINALIZADA\\n\\n'+data.names[data.active]+'\\nAnimales: '+s.length+' / 24\\nTotal: '+total+'\\n11: '+c11+'   10: '+c10+'\\nPromedio: '+(total/s.length).toFixed(1));
+  const c11=s.flat().filter(v=>v===11).length,c10=s.flat().filter(v=>v===10).length,cM=s.flat().filter(v=>v===0).length;
+  alert('🏆 TIRADA FINALIZADA\\n\\n'+data.names[data.active]+'\\nAnimales: '+s.length+' / 24\\nTotal: '+total+'\\n11: '+c11+'   10: '+c10+'   M: '+cM+'\\nPromedio: '+(total/s.length).toFixed(1));
 }
 load();
-</script>
-<script>
-let deferredPrompt;
-window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault(); deferredPrompt=e;
-  const b=document.getElementById('installBtn'); if(b)b.style.display='block';
-});
-document.getElementById('installBtn')?.addEventListener('click', async ()=>{
-  if(!deferredPrompt)return;
-  deferredPrompt.prompt();
-  await deferredPrompt.userChoice;
-  deferredPrompt=null;
-  document.getElementById('installBtn').style.display='none';
-});
-if('serviceWorker' in navigator) window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js'));
 </script>
 </body>
 </html>
